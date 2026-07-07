@@ -25,6 +25,11 @@
     .sync-bar button:hover { background: #fafaf8; border-color: #b4b2a9; }
     .sync-bar button:disabled { opacity: 0.5; cursor: not-allowed; }
     
+    .tabs { background: #fafaf8; border-bottom: 0.5px solid #d3d1c7; display: flex; gap: 0; flex-shrink: 0; overflow-x: auto; padding: 0 1.5rem; }
+    .tab-btn { padding: 12px 16px; border: none; background: transparent; color: #888780; font-size: 13px; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; white-space: nowrap; }
+    .tab-btn:hover { color: #2c2c2a; }
+    .tab-btn.active { color: #378ADD; border-bottom-color: #378ADD; }
+    
     .controls { background: #f1efe8; padding: 1rem 1.5rem; border-bottom: 0.5px solid #d3d1c7; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; flex-shrink: 0; }
     
     .search-box { display: flex; align-items: center; border: 0.5px solid #d3d1c7; border-radius: 8px; padding: 0 10px; background: white; flex: 1; min-width: 250px; }
@@ -38,8 +43,11 @@
     .stat-label { font-size: 12px; color: #888780; margin-bottom: 8px; font-weight: 500; }
     .stat-value { font-size: 24px; font-weight: 500; color: #2c2c2a; }
     
-    .table-wrapper { flex: 1; overflow-y: auto; padding: 1rem 1.5rem; }
+    .content { flex: 1; overflow-y: auto; padding: 1rem 1.5rem; }
+    .view { display: none; }
+    .view.active { display: block; }
     
+    .table-wrapper { width: 100%; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th { background: #fafaf8; padding: 10px 8px; text-align: left; font-weight: 500; border-bottom: 0.5px solid #d3d1c7; position: sticky; top: 0; font-size: 12px; color: #888780; }
     td { padding: 12px 8px; border-bottom: 0.5px solid #d3d1c7; background: white; }
@@ -50,12 +58,27 @@
     
     .status-paid { color: #3b6d11; font-weight: 500; }
     .status-invoiced { color: #ba7517; font-weight: 500; }
+    .status-pending { color: #888780; font-weight: 500; }
+    
+    .overdue { background-color: #fff3cd; border-left: 3px solid #ff6b6b; }
+    
+    .total-row { background: #f9f8f5; font-weight: 500; border-top: 1px solid #d3d1c7; }
     
     .empty-row { text-align: center; padding: 3rem 1rem; color: #888780; }
     
     .loading { display: flex; align-items: center; justify-content: center; padding: 3rem; }
     .spinner { width: 20px; height: 20px; border: 2px solid #d3d1c7; border-top-color: #378ADD; border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
+    
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+    .modal.active { display: flex; }
+    .modal-content { background: white; border-radius: 12px; padding: 2rem; max-width: 90%; max-height: 90%; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .modal-header h2 { font-size: 20px; font-weight: 500; }
+    .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #888780; }
+    .close-btn:hover { color: #2c2c2a; }
+    
+    .group-header { background: #f9f8f5; padding: 12px 8px; font-weight: 600; color: #2c2c2a; border-top: 1px solid #d3d1c7; margin-top: 1rem; }
   </style>
 </head>
 <body>
@@ -75,24 +98,22 @@
     <button onclick="handleSave()" id="saveBtn" disabled>💾 Save to Sheet</button>
   </div>
   
-  <div class="controls">
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchView('allDeals')">All Deals</button>
+    <button class="tab-btn" onclick="switchView('titles')">📚 Titles</button>
+    <button class="tab-btn" onclick="switchView('contracts')">📋 Contracts</button>
+    <button class="tab-btn" onclick="switchView('payments')">💰 Payments</button>
+    <button class="tab-btn" onclick="switchView('releases')">🎬 Releases</button>
+    <button class="tab-btn" onclick="switchView('mgSummary')">📊 MG Summary</button>
+  </div>
+  
+  <div id="controlsContainer" class="controls">
     <div class="search-box">
       <input type="text" id="search" placeholder="Search by film, distributor, territory…" />
     </div>
-    <div style="display: flex; gap: 12px;">
-      <select id="contractFilter" onchange="applyFilters()">
-        <option value="">All contract statuses</option>
-        <option value="Contract fully signed">Contract fully signed</option>
-        <option value="Contract partially signed">Contract partially signed</option>
-        <option value="Contract in negotiation">Contract in negotiation</option>
-      </select>
-      <select id="paymentFilter" onchange="applyFilters()">
-        <option value="">All payment statuses</option>
-        <option value="Paid">Paid</option>
-        <option value="Invoiced">Invoiced</option>
-        <option value="Pending">Pending</option>
-      </select>
-    </div>
+    <select id="filterSelect" onchange="applyFilters()">
+      <option value="">All statuses</option>
+    </select>
   </div>
   
   <div class="stats">
@@ -114,35 +135,178 @@
     </div>
   </div>
   
-  <div class="table-wrapper">
-    <table>
-      <thead>
-        <tr>
-          <th>Film</th>
-          <th>Distributor</th>
-          <th>Territory</th>
-          <th>Type</th>
-          <th>Contract</th>
-          <th>Payment</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody">
-        <tr><td colspan="6" class="empty-row"><div class="loading"><div class="spinner"></div></div></td></tr>
-      </tbody>
-    </table>
+  <div class="content">
+    <!-- ALL DEALS VIEW -->
+    <div id="allDeals" class="view active">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Film</th>
+              <th>Distributor</th>
+              <th>Territory</th>
+              <th>Type</th>
+              <th>Contract</th>
+              <th>Payment</th>
+            </tr>
+          </thead>
+          <tbody id="allDealsTable">
+            <tr><td colspan="6" class="empty-row"><div class="loading"><div class="spinner"></div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <!-- TITLES VIEW -->
+    <div id="titles" class="view">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Film</th>
+              <th>Territories</th>
+              <th>Distributors</th>
+              <th>Total Deals</th>
+            </tr>
+          </thead>
+          <tbody id="titlesTable">
+            <tr><td colspan="4" class="empty-row"><div class="loading"><div class="spinner"></div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <!-- CONTRACTS VIEW -->
+    <div id="contracts" class="view">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Film</th>
+              <th>Distributor</th>
+              <th>Territory</th>
+              <th>Sales Status</th>
+              <th>Contract Status</th>
+              <th>Signature Date</th>
+            </tr>
+          </thead>
+          <tbody id="contractsTable">
+            <tr><td colspan="6" class="empty-row"><div class="loading"><div class="spinner"></div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <!-- PAYMENTS VIEW -->
+    <div id="payments" class="view">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Film</th>
+              <th>Distributor</th>
+              <th>Territory</th>
+              <th>Instalment</th>
+              <th>Due Date</th>
+              <th>Status</th>
+              <th>Amount Paid</th>
+              <th>Payment Date</th>
+            </tr>
+          </thead>
+          <tbody id="paymentsTable">
+            <tr><td colspan="8" class="empty-row"><div class="loading"><div class="spinner"></div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <!-- RELEASES VIEW -->
+    <div id="releases" class="view">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Film</th>
+              <th>Territory</th>
+              <th>Release Date</th>
+              <th>Distributor</th>
+            </tr>
+          </thead>
+          <tbody id="releasesTable">
+            <tr><td colspan="4" class="empty-row"><div class="loading"><div class="spinner"></div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <!-- MG SUMMARY VIEW -->
+    <div id="mgSummary" class="view">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Film</th>
+              <th>Distributor</th>
+              <th>Territory</th>
+              <th>MG</th>
+            </tr>
+          </thead>
+          <tbody id="mgSummaryTable">
+            <tr><td colspan="4" class="empty-row"><div class="loading"><div class="spinner"></div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FOR TITLE DETAILS -->
+<div id="titleModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="modalTitle"></h2>
+      <button class="close-btn" onclick="closeTitleModal()">×</button>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Distributor</th>
+            <th>Territory</th>
+            <th>Sales Status</th>
+            <th>Date Offer Confirmed</th>
+            <th>MG EUR</th>
+            <th>MG USD</th>
+            <th>MG/License Fee</th>
+            <th>Bumpers</th>
+          </tr>
+        </thead>
+        <tbody id="modalTable"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
 <script>
 let allDeals = [];
 let filteredDeals = [];
+let currentView = 'allDeals';
 let hasChanges = false;
+
+// Column mapping
+const COLUMNS = {
+  A: 'Title', B: 'Licensor', C: 'Licensee', D: 'Deal ID', E: 'Sales Status', 
+  F: 'Type', G: 'Date Offer Confirmed', H: 'MG Type', I: 'MG EUR', J: 'MG USD',
+  K: 'MG/License Fee', L: 'Bumpers', P: 'Contract Status', R: 'Signature Date',
+  AX: 'Release Date',
+  Z: '1st Inst %', AA: '1st Inst Label', AB: '1st Inst Due', AC: '1st Inst Invoice', AD: '1st Inst Status', AE: '1st Inst Paid', AF: '1st Inst Remarks',
+  AG: '2nd Inst %', AH: '2nd Inst Label', AI: '2nd Inst Due', AJ: '2nd Inst Invoice', AK: '2nd Inst Status', AL: '2nd Inst Paid', AM: '2nd Inst Remarks'
+};
 
 function setStatus(msg, state = 'ready') {
   const dot = document.getElementById('statusDot');
   const text = document.getElementById('statusText');
   text.textContent = msg;
-  
   dot.classList.remove('syncing', 'error');
   if (state === 'syncing') dot.classList.add('syncing');
   if (state === 'error') dot.classList.add('error');
@@ -159,7 +323,7 @@ function handleRefresh() {
         allDeals = data;
         filteredDeals = [...allDeals];
         updateStats();
-        applyFilters();
+        renderCurrentView();
         setStatus(`Loaded ${allDeals.length} deals from Sheet`, 'ready');
         hasChanges = false;
         document.getElementById('saveBtn').disabled = false;
@@ -191,16 +355,11 @@ function handleSave() {
   })
     .then(res => res.json())
     .then(data => {
-      if (data.success) {
-        setStatus(`Saved ${allDeals.length} deals to Sheet`, 'ready');
-        hasChanges = false;
-      } else {
-        setStatus('Save successful', 'ready');
-        hasChanges = false;
-      }
+      setStatus('Saved to Sheet', 'ready');
+      hasChanges = false;
     })
     .catch(err => {
-      setStatus('Error saving data: ' + err.message, 'error');
+      setStatus('Error saving: ' + err.message, 'error');
     })
     .finally(() => {
       document.getElementById('saveBtn').disabled = !hasChanges;
@@ -218,7 +377,11 @@ function updateStats() {
   
   const films = new Set(allDeals.map(d => d.Title)).size;
   const distributors = new Set(allDeals.map(d => d.Distributor).filter(d => d)).size;
-  const paid = allDeals.filter(d => d['Payment_Status'] === 'Paid' || d['Payment Status'] === 'Paid').length;
+  const paid = allDeals.filter(d => {
+    const status1 = d['1st Inst Status'] || '';
+    const status2 = d['2nd Inst Status'] || '';
+    return status1 === 'Paid' || status2 === 'Paid';
+  }).length;
   
   document.getElementById('totalDeals').textContent = allDeals.length;
   document.getElementById('totalFilms').textContent = films;
@@ -226,53 +389,220 @@ function updateStats() {
   document.getElementById('paidCount').textContent = paid;
 }
 
+function switchView(view) {
+  currentView = view;
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(view).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  
+  updateControlsForView(view);
+  renderCurrentView();
+}
+
+function updateControlsForView(view) {
+  const controlsContainer = document.getElementById('controlsContainer');
+  const filterSelect = document.getElementById('filterSelect');
+  
+  if (view === 'allDeals') {
+    controlsContainer.style.display = 'flex';
+    filterSelect.innerHTML = '<option value="">All statuses</option><option value="Paid">Paid</option><option value="Invoiced">Invoiced</option><option value="Pending">Pending</option>';
+  } else if (view === 'contracts') {
+    controlsContainer.style.display = 'flex';
+    filterSelect.innerHTML = '<option value="">All statuses</option><option value="Contract fully signed">Fully Signed</option><option value="Contract partially signed">Partially Signed</option><option value="Contract in negotiation">In Negotiation</option>';
+  } else if (view === 'payments') {
+    controlsContainer.style.display = 'flex';
+    filterSelect.innerHTML = '<option value="">All statuses</option><option value="Paid">Paid</option><option value="Invoiced">Invoiced</option><option value="Pending">Pending</option>';
+  } else {
+    controlsContainer.style.display = 'none';
+  }
+}
+
 function applyFilters() {
   const search = document.getElementById('search').value.toLowerCase();
-  const contractFilter = document.getElementById('contractFilter').value;
-  const paymentFilter = document.getElementById('paymentFilter').value;
+  const filterValue = document.getElementById('filterSelect').value;
   
   filteredDeals = allDeals.filter(d => {
     const title = (d.Title || '').toLowerCase();
     const distributor = (d.Distributor || '').toLowerCase();
     const territory = (d.Territory || '').toLowerCase();
-    const contractStatus = d['Contract_Status'] || d['Contract Status'] || '';
-    const paymentStatus = d['Payment_Status'] || d['Payment Status'] || '';
     
     const matchesSearch = !search || title.includes(search) || distributor.includes(search) || territory.includes(search);
-    const matchesContract = !contractFilter || contractStatus === contractFilter;
-    const matchesPayment = !paymentFilter || paymentStatus === paymentFilter;
     
-    return matchesSearch && matchesContract && matchesPayment;
+    let matchesFilter = true;
+    if (filterValue) {
+      if (currentView === 'allDeals' || currentView === 'payments') {
+        const status1 = d['1st Inst Status'] || '';
+        const status2 = d['2nd Inst Status'] || '';
+        matchesFilter = status1 === filterValue || status2 === filterValue;
+      } else if (currentView === 'contracts') {
+        matchesFilter = (d['Contract Status'] || '') === filterValue;
+      }
+    }
+    
+    return matchesSearch && matchesFilter;
   });
   
-  renderTable();
+  renderCurrentView();
 }
 
-function renderTable() {
-  const tbody = document.getElementById('tableBody');
+function renderCurrentView() {
+  if (currentView === 'allDeals') renderAllDeals();
+  else if (currentView === 'titles') renderTitles();
+  else if (currentView === 'contracts') renderContracts();
+  else if (currentView === 'payments') renderPayments();
+  else if (currentView === 'releases') renderReleases();
+  else if (currentView === 'mgSummary') renderMGSummary();
+}
+
+function renderAllDeals() {
+  const tbody = document.getElementById('allDealsTable');
   if (filteredDeals.length === 0) {
     tbody.innerHTML = '<tr><td colspan="6" class="empty-row">No deals match your filters</td></tr>';
     return;
   }
   
-  tbody.innerHTML = filteredDeals.map((d) => {
-    const paymentStatus = d['Payment_Status'] || d['Payment Status'] || '';
-    const paymentClass = paymentStatus === 'Paid' ? 'status-paid' : paymentStatus === 'Invoiced' ? 'status-invoiced' : '';
+  tbody.innerHTML = filteredDeals.map(d => `<tr>
+    <td>${d.Title || '—'}</td>
+    <td>${d.Distributor || '—'}</td>
+    <td>${d.Territory || '—'}</td>
+    <td>${d.Type || '—'}</td>
+    <td>${d['Contract Status'] || '—'}</td>
+    <td><span class="${d['1st Inst Status'] === 'Paid' ? 'status-paid' : d['1st Inst Status'] === 'Invoiced' ? 'status-invoiced' : 'status-pending'}">${d['1st Inst Status'] || '—'}</span></td>
+  </tr>`).join('');
+}
+
+function renderTitles() {
+  const titles = [...new Set(allDeals.map(d => d.Title))].sort();
+  const tbody = document.getElementById('titlesTable');
+  
+  tbody.innerHTML = titles.map(title => {
+    const dealsForTitle = allDeals.filter(d => d.Title === title);
+    const territories = new Set(dealsForTitle.map(d => d.Territory)).size;
+    const distributors = new Set(dealsForTitle.map(d => d.Distributor)).size;
     
-    return `<tr>
-      <td>${d.Title || '—'}</td>
-      <td>${d.Distributor || '—'}</td>
-      <td>${d.Territory || '—'}</td>
-      <td>${d.Type || '—'}</td>
-      <td>${d['Contract_Status'] || d['Contract Status'] || '—'}</td>
-      <td><span class="${paymentClass}">${paymentStatus || '—'}</span></td>
+    return `<tr onclick="showTitleDetails('${title}')">
+      <td><span class="film-link">${title || '—'}</span></td>
+      <td>${territories}</td>
+      <td>${distributors}</td>
+      <td>${dealsForTitle.length}</td>
     </tr>`;
   }).join('');
 }
 
+function showTitleDetails(title) {
+  const dealsForTitle = allDeals.filter(d => d.Title === title);
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalTable').innerHTML = dealsForTitle.map(d => `<tr>
+    <td>${d.Distributor || '—'}</td>
+    <td>${d.Territory || '—'}</td>
+    <td>${d['Sales Status'] || '—'}</td>
+    <td>${d['Date Offer Confirmed'] || '—'}</td>
+    <td>${d['MG EUR'] || '—'}</td>
+    <td>${d['MG USD'] || '—'}</td>
+    <td>${d['MG/License Fee'] || '—'}</td>
+    <td>${d.Bumpers || '—'}</td>
+  </tr>`).join('');
+  
+  document.getElementById('titleModal').classList.add('active');
+}
+
+function closeTitleModal() {
+  document.getElementById('titleModal').classList.remove('active');
+}
+
+function renderContracts() {
+  const tbody = document.getElementById('contractsTable');
+  const now = new Date();
+  
+  const rows = filteredDeals.map(d => {
+    const dateOffered = d['Date Offer Confirmed'] ? new Date(d['Date Offer Confirmed']) : null;
+    const daysInNegotiation = dateOffered ? Math.floor((now - dateOffered) / (1000 * 60 * 60 * 24)) : 0;
+    const isOverdue = d['Contract Status'] === 'Contract in negotiation' && daysInNegotiation > 30;
+    
+    return `<tr class="${isOverdue ? 'overdue' : ''}">
+      <td>${d.Title || '—'}</td>
+      <td>${d.Distributor || '—'}</td>
+      <td>${d.Territory || '—'}</td>
+      <td>${d['Sales Status'] || '—'}</td>
+      <td>${d['Contract Status'] || '—'}</td>
+      <td>${d['Signature Date'] || '—'}</td>
+    </tr>`;
+  });
+  
+  tbody.innerHTML = rows.length > 0 ? rows.join('') : '<tr><td colspan="6" class="empty-row">No deals found</td></tr>';
+}
+
+function renderPayments() {
+  const tbody = document.getElementById('paymentsTable');
+  const rows = [];
+  
+  filteredDeals.forEach(d => {
+    // First instalment
+    if (d['1st Inst Label'] || d['1st Inst Status']) {
+      rows.push(`<tr>
+        <td>${d.Title || '—'}</td>
+        <td>${d.Distributor || '—'}</td>
+        <td>${d.Territory || '—'}</td>
+        <td>${d['1st Inst Label'] || '1st'}</td>
+        <td>${d['1st Inst Due'] || '—'}</td>
+        <td><span class="${d['1st Inst Status'] === 'Paid' ? 'status-paid' : d['1st Inst Status'] === 'Invoiced' ? 'status-invoiced' : 'status-pending'}">${d['1st Inst Status'] || '—'}</span></td>
+        <td>${d['MG EUR'] || d['MG USD'] || '—'}</td>
+        <td>${d['1st Inst Paid'] || '—'}</td>
+      </tr>`);
+    }
+    
+    // Second instalment
+    if (d['2nd Inst Label'] || d['2nd Inst Status']) {
+      rows.push(`<tr>
+        <td>${d.Title || '—'}</td>
+        <td>${d.Distributor || '—'}</td>
+        <td>${d.Territory || '—'}</td>
+        <td>${d['2nd Inst Label'] || '2nd'}</td>
+        <td>${d['2nd Inst Due'] || '—'}</td>
+        <td><span class="${d['2nd Inst Status'] === 'Paid' ? 'status-paid' : d['2nd Inst Status'] === 'Invoiced' ? 'status-invoiced' : 'status-pending'}">${d['2nd Inst Status'] || '—'}</span></td>
+        <td>${d['MG EUR'] || d['MG USD'] || '—'}</td>
+        <td>${d['2nd Inst Paid'] || '—'}</td>
+      </tr>`);
+    }
+  });
+  
+  tbody.innerHTML = rows.length > 0 ? rows.join('') : '<tr><td colspan="8" class="empty-row">No instalments found</td></tr>';
+}
+
+function renderReleases() {
+  const tbody = document.getElementById('releasesTable');
+  const rows = filteredDeals.filter(d => d['Release Date']).map(d => `<tr>
+    <td>${d.Title || '—'}</td>
+    <td>${d.Territory || '—'}</td>
+    <td>${d['Release Date'] || '—'}</td>
+    <td>${d.Distributor || '—'}</td>
+  </tr>`);
+  
+  tbody.innerHTML = rows.length > 0 ? rows.join('') : '<tr><td colspan="4" class="empty-row">No release dates found</td></tr>';
+}
+
+function renderMGSummary() {
+  const tbody = document.getElementById('mgSummaryTable');
+  const titles = [...new Set(allDeals.map(d => d.Title))].sort();
+  let html = '';
+  
+  titles.forEach(title => {
+    const dealsForTitle = allDeals.filter(d => d.Title === title);
+    html += `<tr class="group-header"><td colspan="4">${title}</td></tr>`;
+    html += dealsForTitle.map(d => `<tr>
+      <td></td>
+      <td>${d.Distributor || '—'}</td>
+      <td>${d.Territory || '—'}</td>
+      <td>${d['MG EUR'] || d['MG USD'] || '—'}</td>
+    </tr>`).join('');
+  });
+  
+  tbody.innerHTML = html || '<tr><td colspan="4" class="empty-row">No data found</td></tr>';
+}
+
 document.getElementById('search').addEventListener('input', applyFilters);
 
-// Load data on page load
 window.addEventListener('load', handleRefresh);
 </script>
 
