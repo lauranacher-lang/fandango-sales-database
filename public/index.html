@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fandango Sales Database</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif; color: #2c2c2a; background: #f1efe8; }
+    
+    .container { display: flex; flex-direction: column; height: 100vh; background: #f1efe8; }
+    
+    .header { background: linear-gradient(135deg, #2a5a8a 0%, #1f4e78 100%); color: white; padding: 2rem 1.5rem; flex-shrink: 0; }
+    .header h1 { font-size: 28px; font-weight: 500; margin: 0 0 4px 0; }
+    .header p { font-size: 14px; opacity: 0.9; margin: 0; }
+    
+    .sync-bar { background: #fafaf8; border-bottom: 0.5px solid #d3d1c7; padding: 12px 1.5rem; display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+    .sync-status { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #888780; flex: 1; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #3b6d11; }
+    .status-dot.syncing { background: #ba7517; animation: pulse 1.5s infinite; }
+    .status-dot.error { background: #a32d2d; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    
+    .sync-bar button { padding: 8px 14px; border: 0.5px solid #d3d1c7; border-radius: 8px; background: white; color: #2c2c2a; font-size: 13px; cursor: pointer; font-weight: 500; transition: all 0.15s; }
+    .sync-bar button:hover { background: #fafaf8; border-color: #b4b2a9; }
+    .sync-bar button:disabled { opacity: 0.5; cursor: not-allowed; }
+    
+    .controls { background: #f1efe8; padding: 1rem 1.5rem; border-bottom: 0.5px solid #d3d1c7; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; flex-shrink: 0; }
+    
+    .search-box { display: flex; align-items: center; border: 0.5px solid #d3d1c7; border-radius: 8px; padding: 0 10px; background: white; flex: 1; min-width: 250px; }
+    .search-box input { flex: 1; border: none; background: transparent; padding: 8px; font-size: 13px; outline: none; color: #2c2c2a; }
+    .search-box input::placeholder { color: #888780; }
+    
+    select { padding: 8px 10px; border: 0.5px solid #d3d1c7; border-radius: 8px; background: white; color: #2c2c2a; font-size: 13px; cursor: pointer; }
+    
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; padding: 12px 1.5rem; background: #f1efe8; flex-shrink: 0; }
+    .stat { background: #fafaf8; padding: 1rem; border-radius: 8px; border: 0.5px solid #d3d1c7; text-align: center; }
+    .stat-label { font-size: 12px; color: #888780; margin-bottom: 8px; font-weight: 500; }
+    .stat-value { font-size: 24px; font-weight: 500; color: #2c2c2a; }
+    
+    .table-wrapper { flex: 1; overflow-y: auto; padding: 1rem 1.5rem; }
+    
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { background: #fafaf8; padding: 10px 8px; text-align: left; font-weight: 500; border-bottom: 0.5px solid #d3d1c7; position: sticky; top: 0; font-size: 12px; color: #888780; }
+    td { padding: 12px 8px; border-bottom: 0.5px solid #d3d1c7; background: white; }
+    tr:hover { background: #fafaf8; }
+    
+    .film-link { color: #378ADD; cursor: pointer; font-weight: 500; text-decoration: none; }
+    .film-link:hover { text-decoration: underline; }
+    
+    .status-paid { color: #3b6d11; font-weight: 500; }
+    .status-invoiced { color: #ba7517; font-weight: 500; }
+    
+    .empty-row { text-align: center; padding: 3rem 1rem; color: #888780; }
+    
+    .loading { display: flex; align-items: center; justify-content: center; padding: 3rem; }
+    .spinner { width: 20px; height: 20px; border: 2px solid #d3d1c7; border-top-color: #378ADD; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>📽️ Fandango Sales Database</h1>
+    <p>631 international film distribution deals — live sync with Google Sheet</p>
+  </div>
+  
+  <div class="sync-bar">
+    <div class="sync-status">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">Loading…</span>
+    </div>
+    <button onclick="handleRefresh()" id="refreshBtn">🔄 Refresh from Sheet</button>
+    <button onclick="handleSave()" id="saveBtn" disabled>💾 Save to Sheet</button>
+  </div>
+  
+  <div class="controls">
+    <div class="search-box">
+      <input type="text" id="search" placeholder="Search by film, distributor, territory…" />
+    </div>
+    <div style="display: flex; gap: 12px;">
+      <select id="contractFilter" onchange="applyFilters()">
+        <option value="">All contract statuses</option>
+        <option value="Contract fully signed">Contract fully signed</option>
+        <option value="Contract partially signed">Contract partially signed</option>
+        <option value="Contract in negotiation">Contract in negotiation</option>
+      </select>
+      <select id="paymentFilter" onchange="applyFilters()">
+        <option value="">All payment statuses</option>
+        <option value="Paid">Paid</option>
+        <option value="Invoiced">Invoiced</option>
+        <option value="Pending">Pending</option>
+      </select>
+    </div>
+  </div>
+  
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-label">Total deals</div>
+      <div class="stat-value" id="totalDeals">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Films</div>
+      <div class="stat-value" id="totalFilms">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Distributors</div>
+      <div class="stat-value" id="totalDistributors">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Paid</div>
+      <div class="stat-value" id="paidCount">—</div>
+    </div>
+  </div>
+  
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Film</th>
+          <th>Distributor</th>
+          <th>Territory</th>
+          <th>Type</th>
+          <th>Contract</th>
+          <th>Payment</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr><td colspan="6" class="empty-row"><div class="loading"><div class="spinner"></div></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+let allDeals = [];
+let filteredDeals = [];
+let hasChanges = false;
+
+function setStatus(msg, state = 'ready') {
+  const dot = document.getElementById('statusDot');
+  const text = document.getElementById('statusText');
+  text.textContent = msg;
+  
+  dot.classList.remove('syncing', 'error');
+  if (state === 'syncing') dot.classList.add('syncing');
+  if (state === 'error') dot.classList.add('error');
+}
+
+function handleRefresh() {
+  setStatus('Syncing with Google Sheet…', 'syncing');
+  document.getElementById('refreshBtn').disabled = true;
+  
+  fetch('/api/deals')
+    .then(res => res.json())
+    .then(data => {
+      if (Array.isArray(data)) {
+        allDeals = data;
+        filteredDeals = [...allDeals];
+        updateStats();
+        applyFilters();
+        setStatus(`Loaded ${allDeals.length} deals from Sheet`, 'ready');
+        hasChanges = false;
+        document.getElementById('saveBtn').disabled = false;
+      } else {
+        setStatus('Error: Invalid data format', 'error');
+      }
+    })
+    .catch(err => {
+      setStatus('Error loading data: ' + err.message, 'error');
+    })
+    .finally(() => {
+      document.getElementById('refreshBtn').disabled = false;
+    });
+}
+
+function handleSave() {
+  if (!hasChanges) {
+    setStatus('No changes to save', 'ready');
+    return;
+  }
+  
+  setStatus('Saving to Google Sheet…', 'syncing');
+  document.getElementById('saveBtn').disabled = true;
+  
+  fetch('/api/deals', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(allDeals)
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        setStatus(`Saved ${allDeals.length} deals to Sheet`, 'ready');
+        hasChanges = false;
+      } else {
+        setStatus('Save successful', 'ready');
+        hasChanges = false;
+      }
+    })
+    .catch(err => {
+      setStatus('Error saving data: ' + err.message, 'error');
+    })
+    .finally(() => {
+      document.getElementById('saveBtn').disabled = !hasChanges;
+    });
+}
+
+function updateStats() {
+  if (allDeals.length === 0) {
+    document.getElementById('totalDeals').textContent = '—';
+    document.getElementById('totalFilms').textContent = '—';
+    document.getElementById('totalDistributors').textContent = '—';
+    document.getElementById('paidCount').textContent = '—';
+    return;
+  }
+  
+  const films = new Set(allDeals.map(d => d.Title)).size;
+  const distributors = new Set(allDeals.map(d => d.Distributor).filter(d => d)).size;
+  const paid = allDeals.filter(d => d['Payment_Status'] === 'Paid' || d['Payment Status'] === 'Paid').length;
+  
+  document.getElementById('totalDeals').textContent = allDeals.length;
+  document.getElementById('totalFilms').textContent = films;
+  document.getElementById('totalDistributors').textContent = distributors;
+  document.getElementById('paidCount').textContent = paid;
+}
+
+function applyFilters() {
+  const search = document.getElementById('search').value.toLowerCase();
+  const contractFilter = document.getElementById('contractFilter').value;
+  const paymentFilter = document.getElementById('paymentFilter').value;
+  
+  filteredDeals = allDeals.filter(d => {
+    const title = (d.Title || '').toLowerCase();
+    const distributor = (d.Distributor || '').toLowerCase();
+    const territory = (d.Territory || '').toLowerCase();
+    const contractStatus = d['Contract_Status'] || d['Contract Status'] || '';
+    const paymentStatus = d['Payment_Status'] || d['Payment Status'] || '';
+    
+    const matchesSearch = !search || title.includes(search) || distributor.includes(search) || territory.includes(search);
+    const matchesContract = !contractFilter || contractStatus === contractFilter;
+    const matchesPayment = !paymentFilter || paymentStatus === paymentFilter;
+    
+    return matchesSearch && matchesContract && matchesPayment;
+  });
+  
+  renderTable();
+}
+
+function renderTable() {
+  const tbody = document.getElementById('tableBody');
+  if (filteredDeals.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-row">No deals match your filters</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = filteredDeals.map((d) => {
+    const paymentStatus = d['Payment_Status'] || d['Payment Status'] || '';
+    const paymentClass = paymentStatus === 'Paid' ? 'status-paid' : paymentStatus === 'Invoiced' ? 'status-invoiced' : '';
+    
+    return `<tr>
+      <td>${d.Title || '—'}</td>
+      <td>${d.Distributor || '—'}</td>
+      <td>${d.Territory || '—'}</td>
+      <td>${d.Type || '—'}</td>
+      <td>${d['Contract_Status'] || d['Contract Status'] || '—'}</td>
+      <td><span class="${paymentClass}">${paymentStatus || '—'}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+document.getElementById('search').addEventListener('input', applyFilters);
+
+// Load data on page load
+window.addEventListener('load', handleRefresh);
+</script>
+
+</body>
+</html>
