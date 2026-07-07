@@ -7,67 +7,50 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif; color: #2c2c2a; background: #f1efe8; }
-    
     .container { display: flex; flex-direction: column; height: 100vh; background: #f1efe8; }
-    
     .header { background: linear-gradient(135deg, #2a5a8a 0%, #1f4e78 100%); color: white; padding: 2rem 1.5rem; flex-shrink: 0; }
     .header h1 { font-size: 28px; font-weight: 500; margin: 0 0 4px 0; }
     .header p { font-size: 14px; opacity: 0.9; margin: 0; }
-    
     .sync-bar { background: #fafaf8; border-bottom: 0.5px solid #d3d1c7; padding: 12px 1.5rem; display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
     .sync-status { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #888780; flex: 1; }
     .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #3b6d11; }
     .status-dot.syncing { background: #ba7517; animation: pulse 1.5s infinite; }
     .status-dot.error { background: #a32d2d; }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-    
     .sync-bar button { padding: 8px 14px; border: 0.5px solid #d3d1c7; border-radius: 8px; background: white; color: #2c2c2a; font-size: 13px; cursor: pointer; font-weight: 500; transition: all 0.15s; }
     .sync-bar button:hover { background: #fafaf8; border-color: #b4b2a9; }
     .sync-bar button:disabled { opacity: 0.5; cursor: not-allowed; }
-    
     .tabs { background: #fafaf8; border-bottom: 0.5px solid #d3d1c7; display: flex; gap: 0; flex-shrink: 0; overflow-x: auto; padding: 0 1.5rem; }
     .tab-btn { padding: 12px 16px; border: none; background: transparent; color: #888780; font-size: 13px; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; white-space: nowrap; }
     .tab-btn:hover { color: #2c2c2a; }
     .tab-btn.active { color: #378ADD; border-bottom-color: #378ADD; }
-    
     .controls { background: #f1efe8; padding: 1rem 1.5rem; border-bottom: 0.5px solid #d3d1c7; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; flex-shrink: 0; }
-    
     .search-box { display: flex; align-items: center; border: 0.5px solid #d3d1c7; border-radius: 8px; padding: 0 10px; background: white; flex: 1; min-width: 250px; }
     .search-box input { flex: 1; border: none; background: transparent; padding: 8px; font-size: 13px; outline: none; color: #2c2c2a; }
     .search-box input::placeholder { color: #888780; }
-    
     select { padding: 8px 10px; border: 0.5px solid #d3d1c7; border-radius: 8px; background: white; color: #2c2c2a; font-size: 13px; cursor: pointer; }
-    
     .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; padding: 12px 1.5rem; background: #f1efe8; flex-shrink: 0; }
     .stat { background: #fafaf8; padding: 1rem; border-radius: 8px; border: 0.5px solid #d3d1c7; text-align: center; }
     .stat-label { font-size: 12px; color: #888780; margin-bottom: 8px; font-weight: 500; }
     .stat-value { font-size: 24px; font-weight: 500; color: #2c2c2a; }
-    
     .content { flex: 1; overflow-y: auto; padding: 1rem 1.5rem; }
     .view { display: none; }
     .view.active { display: block; }
-    
     .table-wrapper { width: 100%; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th { background: #fafaf8; padding: 10px 8px; text-align: left; font-weight: 500; border-bottom: 0.5px solid #d3d1c7; position: sticky; top: 0; font-size: 12px; color: #888780; }
     td { padding: 12px 8px; border-bottom: 0.5px solid #d3d1c7; background: white; }
     tr:hover { background: #fafaf8; }
-    
     .film-link { color: #378ADD; cursor: pointer; font-weight: 500; text-decoration: none; }
     .film-link:hover { text-decoration: underline; }
-    
     .status-paid { color: #3b6d11; font-weight: 500; }
     .status-invoiced { color: #ba7517; font-weight: 500; }
     .status-pending { color: #888780; font-weight: 500; }
-    
     .overdue { background-color: #fff3cd; border-left: 3px solid #ff6b6b; }
-    
     .empty-row { text-align: center; padding: 3rem 1rem; color: #888780; }
-    
     .loading { display: flex; align-items: center; justify-content: center; padding: 3rem; }
     .spinner { width: 20px; height: 20px; border: 2px solid #d3d1c7; border-top-color: #378ADD; border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
     .modal.active { display: flex; }
     .modal-content { background: white; border-radius: 12px; padding: 2rem; max-width: 90%; max-height: 90%; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
@@ -75,8 +58,8 @@
     .modal-header h2 { font-size: 20px; font-weight: 500; }
     .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #888780; }
     .close-btn:hover { color: #2c2c2a; }
-    
-    .group-header { background: #f9f8f5; padding: 12px 8px; font-weight: 600; color: #2c2c2a; border-top: 1px solid #d3d1c7; margin-top: 1rem; }
+    .group-header { background: #f9f8f5; padding: 12px 8px; font-weight: 600; color: #2c2c2a; border-top: 1px solid #d3d1c7; }
+    .total-row { background: #f9f8f5; font-weight: 600; border-top: 1px solid #d3d1c7; }
   </style>
 </head>
 <body>
@@ -93,7 +76,6 @@
       <span id="statusText">Loading…</span>
     </div>
     <button onclick="handleRefresh()" id="refreshBtn">🔄 Refresh from Sheet</button>
-    <button onclick="handleSave()" id="saveBtn" disabled>💾 Save to Sheet</button>
   </div>
   
   <div class="tabs">
@@ -134,132 +116,62 @@
   </div>
   
   <div class="content">
-    <!-- ALL DEALS VIEW -->
     <div id="allDeals" class="view active">
       <div class="table-wrapper">
         <table>
-          <thead>
-            <tr>
-              <th>Film</th>
-              <th>Distributor</th>
-              <th>Territory</th>
-              <th>Sales Status</th>
-              <th>Contract Status</th>
-              <th>Payment Status</th>
-            </tr>
-          </thead>
-          <tbody id="allDealsTable">
-            <tr><td colspan="6" class="empty-row"><div class="loading"><div class="spinner"></div></div></td></tr>
-          </tbody>
+          <thead><tr><th>Film</th><th>Distributor</th><th>Territory</th><th>Sales Status</th><th>MG EUR</th><th>1st Instalment</th><th>2nd Instalment</th></tr></thead>
+          <tbody id="allDealsTable"><tr><td colspan="7" class="empty-row"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
         </table>
       </div>
     </div>
     
-    <!-- TITLES VIEW -->
     <div id="titles" class="view">
       <div class="table-wrapper">
         <table>
-          <thead>
-            <tr>
-              <th>Film</th>
-              <th>Territories</th>
-              <th>Distributors</th>
-              <th>Total Deals</th>
-            </tr>
-          </thead>
-          <tbody id="titlesTable">
-            <tr><td colspan="4" class="empty-row"><div class="loading"><div class="spinner"></div></div></td></tr>
-          </tbody>
+          <thead><tr><th>Film</th><th>Territories</th><th>Distributors</th><th>Total Deals</th></tr></thead>
+          <tbody id="titlesTable"><tr><td colspan="4" class="empty-row"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
         </table>
       </div>
     </div>
     
-    <!-- CONTRACTS VIEW -->
     <div id="contracts" class="view">
       <div class="table-wrapper">
         <table>
-          <thead>
-            <tr>
-              <th>Film</th>
-              <th>Distributor</th>
-              <th>Territory</th>
-              <th>Sales Status</th>
-              <th>Contract Status</th>
-              <th>Signature Date</th>
-            </tr>
-          </thead>
-          <tbody id="contractsTable">
-            <tr><td colspan="6" class="empty-row"><div class="loading"><div class="spinner"></div></div></td></tr>
-          </tbody>
+          <thead><tr><th>Film</th><th>Distributor</th><th>Territory</th><th>Sales Status</th><th>Contract Status</th><th>Signature Date</th></tr></thead>
+          <tbody id="contractsTable"><tr><td colspan="6" class="empty-row"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
         </table>
       </div>
     </div>
     
-    <!-- PAYMENTS VIEW -->
     <div id="payments" class="view">
       <div class="table-wrapper">
         <table>
-          <thead>
-            <tr>
-              <th>Film</th>
-              <th>Distributor</th>
-              <th>Territory</th>
-              <th>Instalment</th>
-              <th>Due Date</th>
-              <th>Status</th>
-              <th>Amount Paid</th>
-              <th>Payment Date</th>
-            </tr>
-          </thead>
-          <tbody id="paymentsTable">
-            <tr><td colspan="8" class="empty-row"><div class="loading"><div class="spinner"></div></div></td></tr>
-          </tbody>
+          <thead><tr><th>Film</th><th>Distributor</th><th>Territory</th><th>Instalment</th><th>Due Date</th><th>Status</th><th>Amount</th><th>Payment Date</th></tr></thead>
+          <tbody id="paymentsTable"><tr><td colspan="8" class="empty-row"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
         </table>
       </div>
     </div>
     
-    <!-- RELEASES VIEW -->
     <div id="releases" class="view">
       <div class="table-wrapper">
         <table>
-          <thead>
-            <tr>
-              <th>Film</th>
-              <th>Territory</th>
-              <th>Release Date</th>
-              <th>Distributor</th>
-            </tr>
-          </thead>
-          <tbody id="releasesTable">
-            <tr><td colspan="4" class="empty-row"><div class="loading"><div class="spinner"></div></div></td></tr>
-          </tbody>
+          <thead><tr><th>Film</th><th>Territory</th><th>Release Date</th><th>Distributor</th></tr></thead>
+          <tbody id="releasesTable"><tr><td colspan="4" class="empty-row"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
         </table>
       </div>
     </div>
     
-    <!-- MG SUMMARY VIEW -->
     <div id="mgSummary" class="view">
       <div class="table-wrapper">
         <table>
-          <thead>
-            <tr>
-              <th>Film</th>
-              <th>Distributor</th>
-              <th>Territory</th>
-              <th>MG EUR</th>
-              <th>MG USD</th>
-            </tr>
-          </thead>
-          <tbody id="mgSummaryTable">
-            <tr><td colspan="5" class="empty-row"><div class="loading"><div class="spinner"></div></div></td></tr>
-          </tbody>
+          <thead><tr><th>Film</th><th>Distributor</th><th>Territory</th><th>MG EUR</th><th>MG USD</th></tr></thead>
+          <tbody id="mgSummaryTable"><tr><td colspan="5" class="empty-row"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
         </table>
       </div>
     </div>
   </div>
 </div>
 
-<!-- MODAL FOR TITLE DETAILS -->
 <div id="titleModal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
@@ -268,18 +180,7 @@
     </div>
     <div class="table-wrapper">
       <table>
-        <thead>
-          <tr>
-            <th>Distributor</th>
-            <th>Territory</th>
-            <th>Sales Status</th>
-            <th>Date Offer Confirmed</th>
-            <th>MG EUR</th>
-            <th>MG USD</th>
-            <th>IGI/License Fee</th>
-            <th>Bumpers</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Distributor</th><th>Territory</th><th>Sales Status</th><th>Date Offer Confirmed</th><th>MG EUR</th><th>MG USD</th><th>IGI/License Fee</th><th>Bumpers</th></tr></thead>
         <tbody id="modalTable"></tbody>
       </table>
     </div>
@@ -290,324 +191,25 @@
 let allDeals = [];
 let filteredDeals = [];
 let currentView = 'allDeals';
-let hasChanges = false;
 
-function formatDate(dateStr) {
-  if (!dateStr) return '—';
-  try {
-    const date = new Date(dateStr);
-    if (isNaN(date)) return dateStr;
-    return date.toLocaleDateString('en-GB');
-  } catch {
-    return dateStr;
-  }
-}
-
-function setStatus(msg, state = 'ready') {
-  const dot = document.getElementById('statusDot');
-  const text = document.getElementById('statusText');
-  text.textContent = msg;
-  dot.classList.remove('syncing', 'error');
-  if (state === 'syncing') dot.classList.add('syncing');
-  if (state === 'error') dot.classList.add('error');
-}
-
-function handleRefresh() {
-  setStatus('Syncing with Google Sheet…', 'syncing');
-  document.getElementById('refreshBtn').disabled = true;
-  
-  fetch('/api/deals')
-    .then(res => res.json())
-    .then(data => {
-      if (Array.isArray(data)) {
-        allDeals = data;
-        filteredDeals = [...allDeals];
-        updateStats();
-        renderCurrentView();
-        setStatus(`Loaded ${allDeals.length} deals from Sheet`, 'ready');
-        hasChanges = false;
-        document.getElementById('saveBtn').disabled = false;
-      } else {
-        setStatus('Error: Invalid data format', 'error');
-      }
-    })
-    .catch(err => {
-      setStatus('Error loading data: ' + err.message, 'error');
-    })
-    .finally(() => {
-      document.getElementById('refreshBtn').disabled = false;
-    });
-}
-
-function handleSave() {
-  if (!hasChanges) {
-    setStatus('No changes to save', 'ready');
-    return;
-  }
-  
-  setStatus('Saving to Google Sheet…', 'syncing');
-  document.getElementById('saveBtn').disabled = true;
-  
-  fetch('/api/deals', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(allDeals)
-  })
-    .then(res => res.json())
-    .then(data => {
-      setStatus('Saved to Sheet', 'ready');
-      hasChanges = false;
-    })
-    .catch(err => {
-      setStatus('Error saving: ' + err.message, 'error');
-    })
-    .finally(() => {
-      document.getElementById('saveBtn').disabled = !hasChanges;
-    });
-}
-
-function updateStats() {
-  if (allDeals.length === 0) {
-    document.getElementById('totalDeals').textContent = '—';
-    document.getElementById('totalFilms').textContent = '—';
-    document.getElementById('totalDistributors').textContent = '—';
-    document.getElementById('paidCount').textContent = '—';
-    return;
-  }
-  
-  const films = new Set(allDeals.map(d => d.Title)).size;
-  const distributors = new Set(allDeals.map(d => d.Distributor).filter(d => d)).size;
-  const paid = allDeals.filter(d => {
-    const status1 = d['1st Instalment Status'] || '';
-    const status2 = d['2nd Instalment Status'] || '';
-    return status1 === 'Paid' || status2 === 'Paid';
-  }).length;
-  
-  document.getElementById('totalDeals').textContent = allDeals.length;
-  document.getElementById('totalFilms').textContent = films;
-  document.getElementById('totalDistributors').textContent = distributors;
-  document.getElementById('paidCount').textContent = paid;
-}
-
-function switchView(view) {
-  currentView = view;
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.getElementById(view).classList.add('active');
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
-  
-  updateControlsForView(view);
-  renderCurrentView();
-}
-
-function updateControlsForView(view) {
-  const controlsContainer = document.getElementById('controlsContainer');
-  const filterSelect = document.getElementById('filterSelect');
-  
-  if (view === 'allDeals') {
-    controlsContainer.style.display = 'flex';
-    filterSelect.innerHTML = '<option value="">All statuses</option><option value="Paid">Paid</option><option value="Invoiced">Invoiced</option><option value="Pending">Pending</option>';
-  } else if (view === 'contracts') {
-    controlsContainer.style.display = 'flex';
-    filterSelect.innerHTML = '<option value="">All contract statuses</option><option value="Contract fully signed">Fully Signed</option><option value="Contract drafted">Drafted</option><option value="Contract sent out">Sent Out</option><option value="Contract in negotiation">In Negotiation</option><option value="Contract partially signed">Partially Signed</option><option value="n/a">N/A</option>';
-  } else if (view === 'payments') {
-    controlsContainer.style.display = 'flex';
-    filterSelect.innerHTML = '<option value="">All statuses</option><option value="Paid">Paid</option><option value="Invoiced">Invoiced</option><option value="Pending">Pending</option>';
-  } else {
-    controlsContainer.style.display = 'none';
-  }
-}
-
-function applyFilters() {
-  const search = document.getElementById('search').value.toLowerCase();
-  const filterValue = document.getElementById('filterSelect').value;
-  
-  filteredDeals = allDeals.filter(d => {
-    const title = (d.Title || '').toLowerCase();
-    const distributor = (d.Distributor || '').toLowerCase();
-    const territory = (d.Territory || '').toLowerCase();
-    
-    const matchesSearch = !search || title.includes(search) || distributor.includes(search) || territory.includes(search);
-    
-    let matchesFilter = true;
-    if (filterValue) {
-      if (currentView === 'allDeals' || currentView === 'payments') {
-        const status1 = d['1st Instalment Status'] || '';
-        const status2 = d['2nd Instalment Status'] || '';
-        matchesFilter = status1 === filterValue || status2 === filterValue;
-      } else if (currentView === 'contracts') {
-        matchesFilter = (d['Contract Status'] || '') === filterValue;
-      }
-    }
-    
-    return matchesSearch && matchesFilter;
-  });
-  
-  renderCurrentView();
-}
-
-function renderCurrentView() {
-  if (currentView === 'allDeals') renderAllDeals();
-  else if (currentView === 'titles') renderTitles();
-  else if (currentView === 'contracts') renderContracts();
-  else if (currentView === 'payments') renderPayments();
-  else if (currentView === 'releases') renderReleases();
-  else if (currentView === 'mgSummary') renderMGSummary();
-}
-
-function renderAllDeals() {
-  const tbody = document.getElementById('allDealsTable');
-  if (filteredDeals.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="empty-row">No deals match your filters</td></tr>';
-    return;
-  }
-  
-  tbody.innerHTML = filteredDeals.map(d => `<tr>
-    <td>${d.Title || '—'}</td>
-    <td>${d.Distributor || '—'}</td>
-    <td>${d.Territory || '—'}</td>
-    <td>${d['Sales status'] || '—'}</td>
-    <td>${d['Contract Status'] || '—'}</td>
-    <td><span class="${d['1st Instalment Status'] === 'Paid' ? 'status-paid' : d['1st Instalment Status'] === 'Invoiced' ? 'status-invoiced' : 'status-pending'}">${d['1st Instalment Status'] || '—'}</span></td>
-  </tr>`).join('');
-}
-
-function renderTitles() {
-  const titles = [...new Set(allDeals.map(d => d.Title))].sort();
-  const tbody = document.getElementById('titlesTable');
-  
-  tbody.innerHTML = titles.map(title => {
-    const dealsForTitle = allDeals.filter(d => d.Title === title);
-    const territories = new Set(dealsForTitle.map(d => d.Territory)).size;
-    const distributors = new Set(dealsForTitle.map(d => d.Distributor)).size;
-    
-    return `<tr onclick="showTitleDetails('${title.replace(/'/g, "\\'")}')">
-      <td><span class="film-link">${title || '—'}</span></td>
-      <td>${territories}</td>
-      <td>${distributors}</td>
-      <td>${dealsForTitle.length}</td>
-    </tr>`;
-  }).join('');
-}
-
-function showTitleDetails(title) {
-  const dealsForTitle = allDeals.filter(d => d.Title === title);
-  document.getElementById('modalTitle').textContent = title;
-  document.getElementById('modalTable').innerHTML = dealsForTitle.map(d => `<tr>
-    <td>${d.Distributor || '—'}</td>
-    <td>${d.Territory || '—'}</td>
-    <td>${d['Sales status'] || '—'}</td>
-    <td>${formatDate(d['data offer confirmed'])}</td>
-    <td>${d['mg eur'] || '—'}</td>
-    <td>${d['mg usd'] || '—'}</td>
-    <td>${d['IGI/License fe'] || '—'}</td>
-    <td>${d.Bumpers || '—'}</td>
-  </tr>`).join('');
-  
-  document.getElementById('titleModal').classList.add('active');
-}
-
-function closeTitleModal() {
-  document.getElementById('titleModal').classList.remove('active');
-}
-
-function renderContracts() {
-  const tbody = document.getElementById('contractsTable');
-  const now = new Date();
-  
-  const rows = filteredDeals.map(d => {
-    const dateOffered = d['data offer confirmed'] ? new Date(d['data offer confirmed']) : null;
-    const daysInNegotiation = dateOffered ? Math.floor((now - dateOffered) / (1000 * 60 * 60 * 24)) : 0;
-    const isOverdue = d['Contract Status'] === 'Contract in negotiation' && daysInNegotiation > 30;
-    
-    return `<tr class="${isOverdue ? 'overdue' : ''}">
-      <td>${d.Title || '—'}</td>
-      <td>${d.Distributor || '—'}</td>
-      <td>${d.Territory || '—'}</td>
-      <td>${d['Sales status'] || '—'}</td>
-      <td>${d['Contract Status'] || '—'}</td>
-      <td>${formatDate(d['Contract e date'])}</td>
-    </tr>`;
-  });
-  
-  tbody.innerHTML = rows.length > 0 ? rows.join('') : '<tr><td colspan="6" class="empty-row">No deals found</td></tr>';
-}
-
-function renderPayments() {
-  const tbody = document.getElementById('paymentsTable');
-  const rows = [];
-  
-  filteredDeals.forEach(d => {
-    // First instalment
-    if (d['1st Instalment label'] || d['1st Instalment Status']) {
-      rows.push(`<tr>
-        <td>${d.Title || '—'}</td>
-        <td>${d.Distributor || '—'}</td>
-        <td>${d.Territory || '—'}</td>
-        <td>${d['1st Instalment label'] || '1st'}</td>
-        <td>${formatDate(d['1st Instalment Due date'])}</td>
-        <td><span class="${d['1st Instalment Status'] === 'Paid' ? 'status-paid' : d['1st Instalment Status'] === 'Invoiced' ? 'status-invoiced' : 'status-pending'}">${d['1st Instalment Status'] || '—'}</span></td>
-        <td>${d['mg eur'] || d['mg usd'] || '—'}</td>
-        <td>${formatDate(d['1st instalment paid date'])}</td>
-      </tr>`);
-    }
-    
-    // Second instalment
-    if (d['2nd Instalment Label'] || d['2nd Instalment Status']) {
-      rows.push(`<tr>
-        <td>${d.Title || '—'}</td>
-        <td>${d.Distributor || '—'}</td>
-        <td>${d.Territory || '—'}</td>
-        <td>${d['2nd Instalment Label'] || '2nd'}</td>
-        <td>${formatDate(d['2nd Instalment Due date'])}</td>
-        <td><span class="${d['2nd Instalment Status'] === 'Paid' ? 'status-paid' : d['2nd Instalment Status'] === 'Invoiced' ? 'status-invoiced' : 'status-pending'}">${d['2nd Instalment Status'] || '—'}</span></td>
-        <td>${d['mg eur'] || d['mg usd'] || '—'}</td>
-        <td>${formatDate(d['2nd Instalment paid date'])}</td>
-      </tr>`);
-    }
-  });
-  
-  tbody.innerHTML = rows.length > 0 ? rows.join('') : '<tr><td colspan="8" class="empty-row">No instalments found</td></tr>';
-}
-
-function renderReleases() {
-  const tbody = document.getElementById('releasesTable');
-  const rows = filteredDeals.filter(d => d['AX'] || d['Release Date']).map(d => {
-    const releaseDate = d['AX'] || d['Release Date'] || '—';
-    return `<tr>
-      <td>${d.Title || '—'}</td>
-      <td>${d.Territory || '—'}</td>
-      <td>${formatDate(releaseDate)}</td>
-      <td>${d.Distributor || '—'}</td>
-    </tr>`;
-  });
-  
-  tbody.innerHTML = rows.length > 0 ? rows.join('') : '<tr><td colspan="4" class="empty-row">No release dates found</td></tr>';
-}
-
-function renderMGSummary() {
-  const tbody = document.getElementById('mgSummaryTable');
-  const titles = [...new Set(allDeals.map(d => d.Title))].sort();
-  let html = '';
-  
-  titles.forEach(title => {
-    const dealsForTitle = allDeals.filter(d => d.Title === title);
-    html += `<tr class="group-header"><td colspan="5">${title}</td></tr>`;
-    html += dealsForTitle.map(d => `<tr>
-      <td></td>
-      <td>${d.Distributor || '—'}</td>
-      <td>${d.Territory || '—'}</td>
-      <td>${d['mg eur'] || '—'}</td>
-      <td>${d['mg usd'] || '—'}</td>
-    </tr>`).join('');
-  });
-  
-  tbody.innerHTML = html || '<tr><td colspan="5" class="empty-row">No data found</td></tr>';
-}
-
-document.getElementById('search').addEventListener('input', applyFilters);
-
-window.addEventListener('load', handleRefresh);
+function formatDate(d){if(!d)return'—';try{const date=new Date(d);return isNaN(date)?d:date.toLocaleDateString('en-GB');}catch{return d;}}
+function setStatus(m,s='ready'){const dot=document.getElementById('statusDot');const text=document.getElementById('statusText');text.textContent=m;dot.classList.remove('syncing','error');if(s==='syncing')dot.classList.add('syncing');if(s==='error')dot.classList.add('error');}
+function handleRefresh(){setStatus('Syncing…','syncing');document.getElementById('refreshBtn').disabled=true;fetch('/api/deals').then(r=>r.json()).then(d=>{if(Array.isArray(d)){allDeals=d;filteredDeals=[...allDeals];updateStats();renderCurrentView();setStatus(`Loaded ${allDeals.length} deals`,'ready');}else{setStatus('Error: Invalid format','error');}}).catch(e=>setStatus('Error: '+e.message,'error')).finally(()=>document.getElementById('refreshBtn').disabled=false);}
+function updateStats(){if(allDeals.length===0){document.getElementById('totalDeals').textContent='—';document.getElementById('totalFilms').textContent='—';document.getElementById('totalDistributors').textContent='—';document.getElementById('paidCount').textContent='—';return;}const films=new Set(allDeals.map(d=>d.Title)).size;const distributors=new Set(allDeals.map(d=>d.Distributor).filter(d=>d)).size;const paid=allDeals.filter(d=>{const s1=d['1st Instalment Status']||'';const s2=d['2nd Instalment Status']||'';return s1==='Paid'||s2==='Paid';}).length;document.getElementById('totalDeals').textContent=allDeals.length;document.getElementById('totalFilms').textContent=films;document.getElementById('totalDistributors').textContent=distributors;document.getElementById('paidCount').textContent=paid;}
+function switchView(v){currentView=v;document.querySelectorAll('.view').forEach(vv=>vv.classList.remove('active'));document.getElementById(v).classList.add('active');document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));event.target.classList.add('active');updateControlsForView(v);renderCurrentView();}
+function updateControlsForView(v){const c=document.getElementById('controlsContainer');const f=document.getElementById('filterSelect');const s=document.getElementById('search');s.value='';if(v==='allDeals'){c.style.display='flex';f.innerHTML='<option value="">All</option><option value="Paid">Paid</option><option value="Invoiced">Invoiced</option><option value="Pending">Pending</option>';}else if(v==='titles'||v==='mgSummary'){c.style.display='flex';f.style.display='none';}else if(v==='contracts'){c.style.display='flex';f.innerHTML='<option value="">All</option><option value="Contract fully signed">Fully Signed</option><option value="Contract drafted">Drafted</option><option value="Contract to be drafted">To Be Drafted</option><option value="Contract sent out">Sent Out</option><option value="Contract in negotiation">In Negotiation</option><option value="Contract partially signed">Partially Signed</option><option value="n/a">N/A</option>';}else if(v==='payments'){c.style.display='flex';f.innerHTML='<option value="">All</option><option value="Paid">Paid</option><option value="Invoiced">Invoiced</option><option value="Pending">Pending</option>';}else{c.style.display='none';}}
+function applyFilters(){const s=document.getElementById('search').value.toLowerCase();const f=document.getElementById('filterSelect').value;filteredDeals=allDeals.filter(d=>{const t=(d.Title||'').toLowerCase();const dist=(d.Distributor||'').toLowerCase();const ter=(d.Territory||'').toLowerCase();const m=!s||t.includes(s)||dist.includes(s)||ter.includes(s);let flt=true;if(f){if(currentView==='allDeals'||currentView==='payments'){const s1=d['1st Instalment Status']||'';const s2=d['2nd Instalment Status']||'';flt=s1===f||s2===f;}else if(currentView==='contracts'){flt=(d['Contract Status']||'')===f;}}return m&&flt;});renderCurrentView();}
+function renderCurrentView(){if(currentView==='allDeals')renderAllDeals();else if(currentView==='titles')renderTitles();else if(currentView==='contracts')renderContracts();else if(currentView==='payments')renderPayments();else if(currentView==='releases')renderReleases();else if(currentView==='mgSummary')renderMGSummary();}
+function renderAllDeals(){const tb=document.getElementById('allDealsTable');if(filteredDeals.length===0){tb.innerHTML='<tr><td colspan="7">No deals</td></tr>';return;}tb.innerHTML=filteredDeals.map(d=>{const s1=d['1st Instalment Status']||'—';const s2=d['2nd Instalment Status']||'—';return`<tr><td>${d.Title||'—'}</td><td>${d.Distributor||'—'}</td><td>${d.Territory||'—'}</td><td>${d['Sales status']||'—'}</td><td>${d['mg eur']||'—'}</td><td><span class="${s1==='Paid'?'status-paid':s1==='Invoiced'?'status-invoiced':'status-pending'}">${s1}</span></td><td><span class="${s2==='Paid'?'status-paid':s2==='Invoiced'?'status-invoiced':'status-pending'}">${s2}</span></td></tr>`;}).join('');}
+function renderTitles(){const titles=[...new Set(allDeals.map(d=>d.Title))].sort();const tb=document.getElementById('titlesTable');const s=document.getElementById('search').value.toLowerCase();const ft=titles.filter(t=>!s||t.toLowerCase().includes(s));tb.innerHTML=ft.map(t=>{const deals=allDeals.filter(d=>d.Title===t);const terr=new Set(deals.map(d=>d.Territory)).size;const dist=new Set(deals.map(d=>d.Distributor)).size;return`<tr onclick="showTitleDetails('${t.replace(/'/g,"\\'")}')"><td><span class="film-link">${t}</span></td><td>${terr}</td><td>${dist}</td><td>${deals.length}</td></tr>`;}).join('');}
+function showTitleDetails(t){const deals=allDeals.filter(d=>d.Title===t);document.getElementById('modalTitle').textContent=t;let html=deals.map(d=>`<tr><td>${d.Distributor||'—'}</td><td>${d.Territory||'—'}</td><td>${d['Sales status']||'—'}</td><td>${formatDate(d['data offer confirmed'])}</td><td>${d['mg eur']||'—'}</td><td>${d['mg usd']||'—'}</td><td>${d['IGI/License fe']||'—'}</td><td>${d.Bumpers||'—'}</td></tr>`).join('');html+=`<tr class="total-row"><td colspan="8"><strong>Total: ${deals.length} deals</strong></td></tr>`;document.getElementById('modalTable').innerHTML=html;document.getElementById('titleModal').classList.add('active');}
+function closeTitleModal(){document.getElementById('titleModal').classList.remove('active');}
+function renderContracts(){const tb=document.getElementById('contractsTable');const now=new Date();const rows=filteredDeals.map(d=>{const do_date=d['data offer confirmed']?new Date(d['data offer confirmed']):null;const days_neg=do_date?Math.floor((now-do_date)/(1000*60*60*24)):0;const overdue=d['Contract Status']==='Contract in negotiation'&&days_neg>30;return`<tr class="${overdue?'overdue':''}"><td>${d.Title||'—'}</td><td>${d.Distributor||'—'}</td><td>${d.Territory||'—'}</td><td>${d['Sales status']||'—'}</td><td>${d['Contract Status']||'—'}</td><td>${formatDate(d['Contract e date'])}</td></tr>`;});tb.innerHTML=rows.length>0?rows.join(''):'<tr><td colspan="6">No deals</td></tr>';}
+function renderPayments(){const tb=document.getElementById('paymentsTable');const rows=[];allDeals.forEach(d=>{if(d['1st Instalment label']||d['1st Instalment Status']){rows.push(`<tr><td>${d.Title||'—'}</td><td>${d.Distributor||'—'}</td><td>${d.Territory||'—'}</td><td>${d['1st Instalment label']||'1st'}</td><td>${formatDate(d['1st Instalment Due date'])}</td><td><span class="${d['1st Instalment Status']==='Paid'?'status-paid':d['1st Instalment Status']==='Invoiced'?'status-invoiced':'status-pending'}">${d['1st Instalment Status']||'—'}</span></td><td>${d['mg eur']||d['mg usd']||'—'}</td><td>${formatDate(d['1st instalment paid date'])}</td></tr>`);}if(d['2nd Instalment Label']||d['2nd Instalment Status']){rows.push(`<tr><td>${d.Title||'—'}</td><td>${d.Distributor||'—'}</td><td>${d.Territory||'—'}</td><td>${d['2nd Instalment Label']||'2nd'}</td><td>${formatDate(d['2nd Instalment Due date'])}</td><td><span class="${d['2nd Instalment Status']==='Paid'?'status-paid':d['2nd Instalment Status']==='Invoiced'?'status-invoiced':'status-pending'}">${d['2nd Instalment Status']||'—'}</span></td><td>${d['mg eur']||d['mg usd']||'—'}</td><td>${formatDate(d['2nd Instalment paid date'])}</td></tr>`);}});tb.innerHTML=rows.length>0?rows.join(''):'<tr><td colspan="8">No instalments</td></tr>';}
+function renderReleases(){const tb=document.getElementById('releasesTable');const rows=filteredDeals.filter(d=>d['AX']||d['Release Date']).map(d=>{const rd=d['AX']||d['Release Date']||'—';return`<tr><td>${d.Title||'—'}</td><td>${d.Territory||'—'}</td><td>${formatDate(rd)}</td><td>${d.Distributor||'—'}</td></tr>`;});tb.innerHTML=rows.length>0?rows.join(''):'<tr><td colspan="4">No releases</td></tr>';}
+function renderMGSummary(){const tb=document.getElementById('mgSummaryTable');const titles=[...new Set(allDeals.map(d=>d.Title))].sort();const s=document.getElementById('search').value.toLowerCase();const ft=titles.filter(t=>!s||t.toLowerCase().includes(s));let html='';ft.forEach(t=>{const deals=allDeals.filter(d=>d.Title===t);html+=`<tr class="group-header"><td colspan="5">${t}</td></tr>`;html+=deals.map(d=>`<tr><td></td><td>${d.Distributor||'—'}</td><td>${d.Territory||'—'}</td><td>${d['mg eur']||'—'}</td><td>${d['mg usd']||'—'}</td></tr>`).join('');html+=`<tr class="total-row"><td colspan="3"><strong>Subtotal</strong></td><td colspan="2">${deals.length} deals</td></tr>`;});tb.innerHTML=html||'<tr><td colspan="5">No data</td></tr>';}
+document.getElementById('search').addEventListener('input',applyFilters);
+window.addEventListener('load',handleRefresh);
 </script>
 
 </body>
